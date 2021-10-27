@@ -16,11 +16,15 @@ const handleListen = () => console.log(`Listening on http://localhost:3000`);
 const server = http.createServer(app);//http server
 const wss = new WebSocketServer({server});//websocket server
 
-function handleConnection(socket){
-    console.log(socket);
-    //socket과 실시간 소통
-}
-wss.on("connection",handleConnection);
-//connection event 추가
-//connection이 되면 hanldleConnection실행
+wss.on("connection",(socket)=>{
+    console.log("Connected to Browser ✅");
+    socket.on("close",()=>console.log("Disconnected from Server ❌"));
+    socket.on("message", (message) => {
+        console.log(message);
+    });
+
+    socket.send("hello!!!");
+    //front end(app.js)의 message.data
+});
+
 server.listen(3000,handleListen);

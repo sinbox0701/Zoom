@@ -1,2 +1,16 @@
 const socket = new WebSocket(`ws://${window.location.host}`); 
-//front에서 back을 연결하는 방법
+
+socket.addEventListener("open",()=>{
+    console.log("Connected to Server ✅");
+});
+socket.addEventListener("message",(message)=>{
+    console.log("New Message: ",message.data);
+});
+socket.addEventListener("close",()=>{
+    console.log("Disconnected from Server ❌");
+});
+
+setTimeout(()=>{
+    socket.send("hello from the browser!");
+    //back end(server.js)의 message
+},10000);
