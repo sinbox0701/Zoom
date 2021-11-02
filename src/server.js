@@ -16,7 +16,13 @@ const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
 
 wsServer.on("connection",(socket) => {
-  console.log(socket);
+  socket.on("enter_room",(roomName,done) => {
+    console.log(roomName);
+    //front의 {payload: input.value}
+    setTimeout(() => {
+      done("Hello from backend");
+    },15000);
+  });
 });
 
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
