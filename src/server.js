@@ -19,11 +19,11 @@ wsServer.on("connection",(socket) => {
   socket.onAny((event) => {
     console.log(`Socket Event: ${event}`);
   });
-  //모든 그룹의 Socket과 연결
+
   socket.on("enter_room",(roomName,done) => {
     socket.join(roomName);
-    //socket을 공유할 그룹(Room)을 생성
-    done();
+    done();//front의 showRoom func call
+    socket.to(roomName).emit("welcome");
   });
 });
 
