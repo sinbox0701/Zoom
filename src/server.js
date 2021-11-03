@@ -16,12 +16,14 @@ const httpServer = http.createServer(app);
 const wsServer = SocketIO(httpServer);
 
 wsServer.on("connection",(socket) => {
+  socket.onAny((event) => {
+    console.log(`Socket Event: ${event}`);
+  });
+  //모든 그룹의 Socket과 연결
   socket.on("enter_room",(roomName,done) => {
-    console.log(roomName);
-    //front의 {payload: input.value}
-    setTimeout(() => {
-      done("Hello from backend");
-    },15000);
+    socket.join(roomName);
+    //socket을 공유할 그룹(Room)을 생성
+    done();
   });
 });
 

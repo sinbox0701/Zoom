@@ -2,16 +2,24 @@ const socket = io();
 
 const welcome = document.getElementById("welcome");
 const form = welcome.querySelector("form");
+const room = document.getElementById("room");
 
-function backendDone(msg){
-    console.log(`The backend says: `, msg);
-    //msg: backend의 done("Hello from backend");
+room.hidden = true;
+
+let roomName;
+
+function showRoom() {
+    welcome.hidden = true;
+    room.hidden = false;
+    const h3 = room.querySelector("h3");
+    h3.innerText = `Room ${roomName}`;
 }
+
 function handleRoomSubmit(event) {
     event.preventDefault();
     const input = form.querySelector("input");
-    socket.emit("enter_room",{payload: input.value}, backendDone);
-    //emit --> "event name" (어떤 이벤트던 만들 수 있음), {key:value}형식의 javascript object 전송 가능
+    socket.emit("enter_room", input.value, showRoom);
+    roomName = input.value;
     input.value="";
 }
 
