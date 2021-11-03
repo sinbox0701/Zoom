@@ -24,8 +24,17 @@ wsServer.on("connection",(socket) => {
     socket.join(roomName);
     done();//front의 showRoom func call
     socket.to(roomName).emit("welcome");
+    //server의 emit("Name")과 front의 on("Name")이 같은것이 매칭 
+    socket.on("disconnecting", () => {
+      socket.rooms.forEach((room) => socket.to(room).emit("bye"));
+      //각각의 방에 bye event 보내기
+    });
+    socket.on("new_message", (msg, room, done) => {
+      socket.to(room).emit("new_message", msg);
+      done();//백엔드 실행X
+    });
   });
 });
 
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
-httpServer.listen(3000,handleListen)
+httpServer.listen(3000,handleListen);
