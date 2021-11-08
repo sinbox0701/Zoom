@@ -15,10 +15,14 @@ const getCameras = async () => {
         //유저가 사용하는 장치들을 받아옴 
         const cameras = devices.filter((device) => device.kind === "videoinput");
         //비디오 장치만 따로 받아옴
+        const currentCamera = myStream.getVideoTracks()[0];
         cameras.forEach((camera) => {
             const option = document.createElement("option");
             option.value = camera.deviceId;
             option.innerText = camera.label;
+            if(currentCamera.label === camera.label){
+                option.selected = true;
+            }
             cameraSelect.append(option);
         });
     }catch(e){
@@ -27,14 +31,24 @@ const getCameras = async () => {
 }
 //User가 가지고있는 카메라 리스트 만들기
 
-const getMedia = async () => {
+const getMedia = async (deviceId) => {
+    const initialConstrains = {
+        audio:true,
+        video:{facingMode:"user"}
+    };
+    //facingMode --> 스마트폰에서는 셀카로 보여지게댐
+    const cameraConstrains = {
+        audio:true,
+        video:{deviceId:{exact:deviceId}}
+    };
+    //파라미터로 받는 deviceId값을 가지고있는 카메라를 받아옴
     try {
-        myStream = await navigator.mediaDevices.getUserMedia({
-            audio:true,
-            video:true
-        });
+        myStream = await navigator.mediaDevices.getUserMedia(deviceId ? cameraConstrains : initialConstrains);
+        //deviceId를 parameter로 가진다면 video:{deviceId:{exact:deviceId}} 이런형태, 아니면 video:{facingMode:"user"} 이런형태 
         myFace.srcObject = myStream;
-        await getCameras();
+        if(!deviceId){
+            await getCameras();
+        }
     }catch(e){
         console.log(e);
     }
@@ -63,5 +77,10 @@ const handleCameraClick = () => {
     }
 }
 
+const handleCameraChange = async () => {
+    await getMedia(cameraSelect.value);
+}
+
 muteBtn.addEventListener("click",handleMuteClick);
 cameraBtn.addEventListener("click",handleCameraClick);
+cameraSelect.addEventListener("input",handleCameraChange);
