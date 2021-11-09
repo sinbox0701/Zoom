@@ -1,7 +1,6 @@
 import express from "express";
 import http from "http";
-import {Server} from "socket.io";
-import { instrument } from "@socket.io/admin-ui";
+import SocketIO from "socket.io";
 
 const app = express();
 
@@ -14,15 +13,7 @@ app.get("/", (req,res) => res.render("home"));
 app.get("/*", (req, res) => res.redirect("/"));
 
 const httpServer = http.createServer(app);
-const wsServer = new Server(httpServer,{
-  cors:{
-    origin:["https://admin.socket.io"],
-    credentials:true
-  }
-});
-instrument(wsServer,{
-  auth:false
-});
+const wsServer = SocketIO(httpServer);
 
 wsServer.on("connection",(socket)=>{
   socket.on("join_room",(roomName, done) => {
@@ -30,8 +21,10 @@ wsServer.on("connection",(socket)=>{
     done();
     socket.to(roomName).emit("welcome");
   });
+  socket.on("offer",(offer,roomName)=>{
+    socket.to(roomName).emit("offer",offer);
+  })
 });
-//join_room event
 
 const handleListen = () => console.log(`Listening on http://localhost:3000`);
 httpServer.listen(3000,handleListen);

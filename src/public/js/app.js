@@ -12,6 +12,7 @@ let myStream;
 let muted = false;
 let cameraOff = false;
 let roomName;
+let myPeerConnection;
 
 const getCameras = async () => {
     try {
@@ -93,10 +94,11 @@ cameraSelect.addEventListener("input",handleCameraChange);
 const welcome = document.getElementById("welcome");
 const welcomeForm = welcome.querySelector("form");
 
-const startMedia = () =>{
+const startMedia = async () =>{
     welcome.hidden = true;
     call.hidden = false;
-    getMedia();
+    await getMedia();
+    makeConnection();
 }
 
 const handleWelcomeSubmit = (event) => {
@@ -110,6 +112,26 @@ const handleWelcomeSubmit = (event) => {
 welcomeForm.addEventListener("submit",handleWelcomeSubmit);
 
 //Socket Code
-socket.on("welcome",()=>{
-    console.log("someone joined");
-})
+socket.on("welcome",async ()=>{
+    const offer = await myPeerConnection.createOffer();
+    //다른 브라우저가 참가할수있도록 보내는 참가장 ==> offer
+    myPeerConnection.setLocalDescription(offer);
+    console.log("sent the offer");
+    socket.emit("offer",offer,roomName);
+});
+//createOffer하는 Browser
+
+socket.on("offer", (offer) => {
+    console.log(offer);
+});
+//createAnser하는 Browser
+
+
+//RTC Code
+const makeConnection = () => {
+    myPeerConnection = new RTCPeerConnection();
+    //브라우저간의 연결을 만들어 줌
+    myStream.getTracks().forEach((track)=>myPeerConnection.addTrack(track,myStream));
+    //브라우저의 카메라,마이크의 데이터 스트림을 받아 연결에 집어넣음
+}
+//브라우저끼리 연결
