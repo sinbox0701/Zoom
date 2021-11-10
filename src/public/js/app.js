@@ -94,17 +94,19 @@ cameraSelect.addEventListener("input",handleCameraChange);
 const welcome = document.getElementById("welcome");
 const welcomeForm = welcome.querySelector("form");
 
-const startMedia = async () =>{
+const initCall = async () =>{
     welcome.hidden = true;
     call.hidden = false;
     await getMedia();
     makeConnection();
 }
 
-const handleWelcomeSubmit = (event) => {
+const handleWelcomeSubmit = async (event) => {
     event.preventDefault();
     const input = welcomeForm.querySelector("input");
-    socket.emit("join_room",input.value,startMedia);
+    await initCall();
+    //join_room전에 방 생성
+    socket.emit("join_room",input.value);
     roomName = input.value;
     input.value="";
 }
@@ -119,12 +121,20 @@ socket.on("welcome",async ()=>{
     console.log("sent the offer");
     socket.emit("offer",offer,roomName);
 });
-//createOffer하는 Browser
+//먼저 생성된 브라우저에서 createOffer를 세팅하고 다른 브라우저로 offer 전송
 
-socket.on("offer", (offer) => {
-    console.log(offer);
+socket.on("offer", async (offer) => {
+    myPeerConnection.setRemoteDescription(offer);
+    const answer = await myPeerConnection.createAnswer();
+    myPeerConnection.setLocalDescription(answer);
+    socket.emit("answer",answer,roomName);
 });
-//createAnser하는 Browser
+//다른 브라우저에서 offer받고 createAnswer세팅 answer를 먼저 생성된 브라우저에게 전송
+
+socket.on("answer",(answer)=>{
+    myPeerConnection.setRemoteDescription(answer);
+})
+//먼저 생성된 브라우저에서 answer를 받음
 
 
 //RTC Code
