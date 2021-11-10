@@ -34,22 +34,18 @@ const getCameras = async () => {
         console.log(e);
     }
 }
-//User가 가지고있는 카메라 리스트 만들기
 
 const getMedia = async (deviceId) => {
     const initialConstrains = {
         audio:true,
         video:{facingMode:"user"}
     };
-    //facingMode --> 스마트폰에서는 셀카로 보여지게댐
     const cameraConstrains = {
         audio:true,
         video:{deviceId:{exact:deviceId}}
     };
-    //파라미터로 받는 deviceId값을 가지고있는 카메라를 받아옴
     try {
         myStream = await navigator.mediaDevices.getUserMedia(deviceId ? cameraConstrains : initialConstrains);
-        //deviceId를 parameter로 가진다면 video:{deviceId:{exact:deviceId}} 이런형태, 아니면 video:{facingMode:"user"} 이런형태 
         myFace.srcObject = myStream;
         if(!deviceId){
             await getCameras();
@@ -105,7 +101,6 @@ const handleWelcomeSubmit = async (event) => {
     event.preventDefault();
     const input = welcomeForm.querySelector("input");
     await initCall();
-    //join_room전에 방 생성
     socket.emit("join_room",input.value);
     roomName = input.value;
     input.value="";
@@ -124,24 +119,43 @@ socket.on("welcome",async ()=>{
 //먼저 생성된 브라우저에서 createOffer를 세팅하고 다른 브라우저로 offer 전송
 
 socket.on("offer", async (offer) => {
+    console.log("received the offer");
     myPeerConnection.setRemoteDescription(offer);
     const answer = await myPeerConnection.createAnswer();
     myPeerConnection.setLocalDescription(answer);
     socket.emit("answer",answer,roomName);
+    console.log("sent the answer");
 });
 //다른 브라우저에서 offer받고 createAnswer세팅 answer를 먼저 생성된 브라우저에게 전송
 
 socket.on("answer",(answer)=>{
+    console.log("received the answer");
     myPeerConnection.setRemoteDescription(answer);
 })
 //먼저 생성된 브라우저에서 answer를 받음
 
+socket.on("ice",(ice)=>{
+    console.log("received candidate");
+    myPeerConnection.addIceCandidate(ice);
+})
 
 //RTC Code
 const makeConnection = () => {
     myPeerConnection = new RTCPeerConnection();
     //브라우저간의 연결을 만들어 줌
+    myPeerConnection.addEventListener("icecandidate",handleIce);
+    myPeerConnection.addEventListener("addstream",handleAddStream);
     myStream.getTracks().forEach((track)=>myPeerConnection.addTrack(track,myStream));
     //브라우저의 카메라,마이크의 데이터 스트림을 받아 연결에 집어넣음
 }
 //브라우저끼리 연결
+
+const handleIce = (data) => {
+    console.log("sent candidate");
+    socket.emit("ice",data.candidate,roomName);
+}
+
+const handleAddStream = (data) => {
+    const peerFace = document.getElementById("peerFace");
+    peerFace.srcObject = data.stream;
+}

@@ -26,6 +26,9 @@ wsServer.on("connection",(socket)=>{
   socket.on("answer",(answer,roomName)=>{
     socket.to(roomName).emit("answer",answer);
   });
+  socket.on("ice", (ice, roomName) => {
+    socket.to(roomName).emit("ice", ice);
+  });
 });
 //app.js의 emit ==> server.js의 on
 //server.js의 emit ==> app.js의 on
