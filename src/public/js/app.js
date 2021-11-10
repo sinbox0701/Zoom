@@ -28,7 +28,7 @@ const getCameras = async () => {
             if(currentCamera.label === camera.label){
                 option.selected = true;
             }
-            cameraSelect.append(option);
+            cameraSelect.appendChild(option);
         });
     }catch(e){
         console.log(e);
@@ -79,6 +79,11 @@ const handleCameraClick = () => {
 
 const handleCameraChange = async () => {
     await getMedia(cameraSelect.value);
+    if(myPeerConnection){
+        const videoTrack = myStream.getVideoTracks()[0];
+        const videoSender = myPeerConnection.getSenders().find((sender)=>sender.track.kind === "video");
+        videoSender.replaceTrack(videoTrack);
+    }
 }
 
 muteBtn.addEventListener("click",handleMuteClick);
@@ -158,4 +163,5 @@ const handleIce = (data) => {
 const handleAddStream = (data) => {
     const peerFace = document.getElementById("peerFace");
     peerFace.srcObject = data.stream;
+    console.log(peerFace.srcObject);
 }
