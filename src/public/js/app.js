@@ -146,7 +146,20 @@ socket.on("ice",(ice)=>{
 
 //RTC Code
 const makeConnection = () => {
-    myPeerConnection = new RTCPeerConnection();
+    myPeerConnection = new RTCPeerConnection({
+        iceServers:[
+            {
+                urls:[
+                    "stun:stun.l.google.com:19302",
+                    "stun:stun1.l.google.com:19302",
+                    "stun:stun2.l.google.com:19302",
+                    "stun:stun3.l.google.com:19302",
+                    "stun:stun4.l.google.com:19302",
+                ]
+            }
+        ]
+    });
+    //STUN Server 붙임
     //브라우저간의 연결을 만들어 줌
     myPeerConnection.addEventListener("icecandidate",handleIce);
     myPeerConnection.addEventListener("addstream",handleAddStream);
