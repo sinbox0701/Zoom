@@ -13,6 +13,7 @@ let muted = false;
 let cameraOff = false;
 let roomName;
 let myPeerConnection;
+let myDataChannel;
 
 const getCameras = async () => {
     try {
@@ -115,6 +116,9 @@ welcomeForm.addEventListener("submit",handleWelcomeSubmit);
 
 //Socket Code
 socket.on("welcome",async ()=>{
+    myDataChannel = myPeerConnection.createDataChannel("chat");
+    myDataChannel.addEventListener("message",(event) => console.log(event.data));
+    console.log("made data channel");
     const offer = await myPeerConnection.createOffer();
     //다른 브라우저가 참가할수있도록 보내는 참가장 ==> offer
     myPeerConnection.setLocalDescription(offer);
@@ -124,6 +128,12 @@ socket.on("welcome",async ()=>{
 //먼저 생성된 브라우저에서 createOffer를 세팅하고 다른 브라우저로 offer 전송
 
 socket.on("offer", async (offer) => {
+    myPeerConnection.addEventListener("datachannel", (event) => {
+        myDataChannel = event.channel;
+        myDataChannel.addEventListener("message", (event) =>
+          console.log(event.data)
+        );
+    });
     console.log("received the offer");
     myPeerConnection.setRemoteDescription(offer);
     const answer = await myPeerConnection.createAnswer();
